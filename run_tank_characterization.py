@@ -5,8 +5,7 @@ import h5py
 import numpy as np
 
 from cxotime import CxoTime
-
-from timbre import *
+import timbre
 
 logging.getLogger("xija").setLevel(logging.WARNING)
 
@@ -14,7 +13,8 @@ logging.getLogger("xija").setLevel(logging.WARNING)
 def save_results_to_hdf5(fname, results_array, results_dtype):
     """ Save Timbre results to an HDF5 file.
 
-    Due to some compatibility issues with some string formats in HDF5 files, this may be deprecated in the future.
+    Due to some compatibility issues with some string formats in HDF5 files,
+    this may be deprecated in the future.
 
     :param fname: File name for HDF5 output file
     :param results_array: Numpy array of results
@@ -48,7 +48,7 @@ def run_cases(msid_name, model_specification, model_md5, initial_params, dwell1_
     """
 
     results_dtype = timbre.get_full_dtype(state_pair_dtype)
-    datestamp = CxoTime().yday[:9]
+    datestamp = CxoTime().yday[:9].replace(':', '_')
 
     k = 0
     for full_date_str, limits in date_and_limit_cases.items():
@@ -68,7 +68,7 @@ def run_cases(msid_name, model_specification, model_md5, initial_params, dwell1_
                     args = (msid_name, model_specification, initial_params, limit_celsius, date_str, dwell1_secs,
                             binary_schedule_state_pairs, state_pair_numpy_dtype)
                     kwargs = {'max_dwell': 200000, 'shared_data': return_list}
-                    jobs.append(Process(target=run_state_pairs, args=args, kwargs=kwargs))
+                    jobs.append(Process(target=timbre.run_state_pairs, args=args, kwargs=kwargs))
 
                 for j in jobs:
                     j.start()
@@ -84,15 +84,15 @@ def run_cases(msid_name, model_specification, model_md5, initial_params, dwell1_
 
 
 if __name__ == "__main__":
-
-    filename = Path('~/AXAFLIB/chandra_models/chandra_models/xija/pftank2t/pftank2t_spec.json').expanduser()
-    model_spec, model_hash = get_local_model(filename)
+    xija_path = "C:/Users/JKRIST~1/DOCUME~1/MATLAB/FOT_TO~2/THERMA~1/CHANDR~1.33/CHANDR~1/xija"
+    filename = Path(xija_path + '/pftank2t/pftank2t_spec.json')
+    model_spec, model_hash = timbre.get_local_model(filename)
     msid = 'pftank2t'
     init = {'pftank2t': -8, 'pf0tank2t': -8, 'eclipse': False}
     state_pair_dtype = {'pitch': np.float64, 'roll': np.float64}
     # results_dtype = get_full_dtype(state_pair_dtype)
 
-    pitch_vals = list(range(45, 181, 5))
+    pitch_vals = list(range(45, 181, 15))
     roll_vals = [-10, 0, 10]
 
     cases = {'2021:001:00:00:00': timbre.f_to_c([105.0, 110.0, 115.0]),
