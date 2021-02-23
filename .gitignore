@@ -10,3 +10,4 @@ docs/_build/
 # Pytest files
 .pytest_cache
 pftank2t_*.h5
+*.csv
